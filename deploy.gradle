@@ -110,7 +110,6 @@ bintray {
     pkg {
         repo = bintrayRepo
         name = bintrayName
-        userOrg = organisation
         desc = libraryDescription
         websiteUrl = siteUrl
         vcsUrl = gitUrl
