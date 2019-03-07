@@ -114,7 +114,6 @@ bintray {
         desc = libraryDescription
         websiteUrl = siteUrl
         vcsUrl = gitUrl
-        issueTrackUrl = issueUrl
         licenses = allLicenses
         publish = true
         publicDownloadNumbers = true
