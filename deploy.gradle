@@ -24,11 +24,81 @@
  *
  * More info: https://github.com/JoaquimLey/jcenter-config
  */
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.github.dcendents.android-maven'
+
+group = publishedGroupId // Maven Group ID for the artifact
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                groupId publishedGroupId
+                artifactId artifact
+
+                // Add your description here
+                name libraryName
+                description libraryDescription
+                url siteUrl
+
+                // Set your license
+                licenses {
+                    license {
+                        name licenseName
+                        url licenseUrl
+                    }
+                }
+                developers {
+                    developer {
+                        id developerId
+                        name developerName
+                        email developerEmail
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+
+                }
+            }
+        }
+    }
+}
+
+apply plugin: 'com.jfrog.bintray'
 
 version = libraryVersion
 
+if (project.hasProperty("android")) { // Android libraries
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from android.sourceSets.main.java.srcDirs
+    }
+
+    task javadoc(type: Javadoc) {
+        source = android.sourceSets.main.java.srcDirs
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    }
+} else { // Java libraries
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+// Bintray
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 
@@ -55,61 +125,4 @@ bintray {
             }
         }
     }
-}
-
-install {
-    repositories.mavenInstaller {
-        pom {
-            project {
-                packaging properties.getProperty('pomPackaging')
-                name properties.getProperty('pomName')
-                description properties.getProperty('pomName')
-                artifactId properties.getProperty('pomArtifactId')
-                url properties.getProperty('websiteUrl')
-                licenses {
-                    license {
-                        name properties.getProperty('pomLicenseName')
-                        url properties.getProperty('pomLicenseUrl')
-                    }
-                }
-                developers {
-                    developer {
-                        id properties.getProperty('pomDeveloperId')
-                        name properties.getProperty('pomDeveloperName')
-                        email properties.getProperty('pomDeveloperEmail')
-                    }
-                }
-                scm {
-                    connection properties.getProperty('vcsUrl')
-                    developerConnection properties.getProperty('vcsUrl')
-                    url properties.getProperty('websiteUrl')
-
-                }
-            }
-        }
-    }
-}
-
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
-
-task findConventions << {
-    println project.getConvention()
 }
